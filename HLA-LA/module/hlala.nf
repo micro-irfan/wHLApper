@@ -11,7 +11,8 @@ nextflow.enable.dsl=2
 process HLALA {
     tag "${meta.id}"
     label 'hlala'
-    publishDir "${params.outdir}/${meta.id}", mode: 'copy', saveAs: { fn -> fn.endsWith('_hla') ? 'hla' : null }
+    // path is a closure so it is evaluated per task, once meta is defined
+    publishDir path: { "${params.outdir}/${meta.id}" }, mode: 'copy', saveAs: { fn -> fn.endsWith('_hla') ? 'hla' : null }
 
     input:
         tuple val(meta), path(xam), path(xamIdx)
@@ -45,7 +46,7 @@ process HLALA {
 process HLALA_QC {
     tag "${meta.id}"
     label 'python'
-    publishDir "${params.outdir}/${meta.id}", mode: 'copy'
+    publishDir path: { "${params.outdir}/${meta.id}" }, mode: 'copy'
 
     input:
         tuple val(meta), path(bestguess)
