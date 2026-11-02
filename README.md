@@ -12,6 +12,9 @@ Wrappers for running and comparing HLA (and other immune/PGx gene) typing tools 
 ## Quick start
 
 ```bash
+git clone https://github.com/micro-irfan/wHLApper.git
+cd wHLApper/
+
 # HLA*LA (Nextflow)
 nextflow run HLA-LA/main.nf -profile docker --input samplesheet.csv \
     --reference GRCh38.fa --hla_reference GRCh38_full_analysis_set_plus_decoy_hla.fa \

@@ -18,6 +18,7 @@ HLA-LA/
   envs/                   conda environments for the conda profile
   docker/Dockerfile       HLA*LA 1.0.3 image (samtools, bwa, picard, minimap2)
   prepare_hla_graph.sh    indexes the HLA*LA PRG graph
+  run_HLA-LA.sh           launcher: runs the pipeline in the background with your settings
   reference/              the earlier PGx pipeline this was adapted from (not used)
 ```
 
@@ -74,7 +75,49 @@ nextflow run main.nf -profile singularity \
     --input assets/samplesheet_example.csv --reference ... --hla_reference ... --graph_dir ...
 ```
 
-For routine runs, copy [`run_HLA-LA.sh`](run_HLA-LA.sh), edit the paths at the top, and run it from your run folder. It starts Nextflow in the background with `-resume` and logs to `nextflow_run.<RUN_NAME>.log`. If you copy it outside this folder, set `WORKFLOW_DIR`.
+### Running with `run_HLA-LA.sh`
+
+For routine runs, use [`run_HLA-LA.sh`](run_HLA-LA.sh). It starts Nextflow in the background with `-resume`, so you can log out while it runs.
+
+1. Make a run folder and copy in the script and your samplesheet:
+
+   ```bash
+   mkdir -p /data/runs/hlala_2026_11 && cd /data/runs/hlala_2026_11
+   cp /path/to/wHLApper/HLA-LA/run_HLA-LA.sh .
+   cp /path/to/samplesheet.csv .
+   ```
+
+2. Edit the settings at the top of `run_HLA-LA.sh`:
+
+   | variable | set it to |
+   |---|---|
+   | `WORKFLOW_DIR` | `/path/to/wHLApper/HLA-LA`. Required once the script is copied out of the repo. You can also pass it as `WORKFLOW_DIR=... ./run_HLA-LA.sh` |
+   | `RUN_NAME` | a name for this run. Results go to `results/<RUN_NAME>` |
+   | `SAMPLESHEET` | your samplesheet (default `samplesheet.csv` in the run folder) |
+   | `PROFILE` | `docker`, `singularity` or `conda`, optionally with `,slurm` |
+   | `REFERENCE` | FASTA your BAMs/CRAMs were aligned to |
+   | `HLA_REFERENCE`, `HLA_REFERENCE_MMI` | decoy FASTA and its minimap2 index (set the `.mmi` to `""` if you don't have one) |
+   | `GRAPH_DIR` | graph folder prepared with `prepare_hla_graph.sh` |
+   | `HLA_CONTAINER` | `hla-la:1.0.3` for the image you built, or the ECR image |
+
+   Threads and QC thresholds (`--threads`, `--min_coverage`, `--min_q1`) are set as flags in the `nextflow run` command further down.
+
+3. Launch it:
+
+   ```bash
+   bash run_HLA-LA.sh
+   # Launching Nextflow in the background...
+   # PID: 12345  |  log: nextflow_run.<RUN_NAME>.log
+   ```
+
+4. Follow progress, and stop the run if needed:
+
+   ```bash
+   tail -f nextflow_run.<RUN_NAME>.log
+   kill <PID>        # stops Nextflow; running jobs are cleaned up
+   ```
+
+To resume after a failure or a `kill`, run `bash run_HLA-LA.sh` again from the same folder. `-resume` reuses finished tasks from the `work/` folder. When results are final, you can delete `work/` and `.nextflow*`.
 
 Profiles: `docker`, `singularity` or `conda`. Any of them can be combined with `slurm`, e.g. `-profile singularity,slurm --queue long`. Whichever profile you use, the graph must already be prepared. The conda package doesn't include one.
 

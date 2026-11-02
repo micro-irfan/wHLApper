@@ -38,11 +38,6 @@ def helpMessage() {
     """.stripIndent()
 }
 
-if (params.help) {
-    helpMessage()
-    exit 0
-}
-
 /*
  * ---------------------------------------------------------------------------
  *  Modules
@@ -79,7 +74,7 @@ def parseInput(String input) {
     }
 
     if (!(name ==~ /.*\.(csv|tsv|txt)$/)) {
-        error "--input must be a .bam/.cram file or a .csv/.tsv samplesheet: ${input}"
+        error("--input must be a .bam/.cram file or a .csv/.tsv samplesheet: ${input}")
     }
 
     def sep = name.endsWith('.csv') ? ',' : '\t'
@@ -88,8 +83,8 @@ def parseInput(String input) {
         def row = raw.collectEntries { k, v -> [(k.toString().trim().toLowerCase()), v?.toString()?.trim()] }
         def id = row['sample_id'] ?: row['sample'] ?: row['id']
         def p  = row['bam'] ?: row['bam_path'] ?: row['path'] ?: row['bam_dir']
-        if (!id || !p) error "Samplesheet row is missing sample_id or bam: ${raw}"
-        if (!seen.add(id)) error "Duplicate sample_id in samplesheet: ${id}"
+        if (!id || !p) error("Samplesheet row is missing sample_id or bam: ${raw}")
+        if (!seen.add(id)) error("Duplicate sample_id in samplesheet: ${id}")
 
         def truth = [:]
         row.each { k, v ->
@@ -100,7 +95,7 @@ def parseInput(String input) {
         def path = file(p, checkIfExists: true)
         if (path.isDirectory()) {
             def xams = path.listFiles().findAll { it.name ==~ /.*\.(bam|cram)$/ }.sort { it.name }
-            if (!xams) error "No .bam/.cram files found in folder for ${id}: ${path}"
+            if (!xams) error("No .bam/.cram files found in folder for ${id}: ${path}")
             if (xams.size() == 1) {
                 return [id: id, files: xams, index: findIndex(xams[0]), type: 'file', truth: truth]
             }
@@ -117,10 +112,21 @@ def parseInput(String input) {
  */
 
 workflow {
-    if (!params.input)     error "Missing --input (BAM/CRAM or samplesheet)"
-    if (!params.reference) error "Missing --reference (FASTA)"
-    if (!params.graph_dir) error "Missing --graph_dir (HLA*LA graph folder)"
-    if (!params.hla_reference) error "Missing --hla_reference (HLA decoy FASTA, e.g. GRCh38_full_analysis_set_plus_decoy_hla.fa)"
+    // Top-level statements aren't allowed by the strict syntax parser, so --help
+    // and the completion handler live inside the workflow
+    if (params.help) {
+        helpMessage()
+        exit 0
+    }
+
+    workflow.onComplete {
+        log.info "wHLApper finished: ${workflow.success ? 'OK' : 'FAILED'} - results in ${params.outdir}"
+    }
+
+    if (!params.input)         error("Missing --input (BAM/CRAM or samplesheet)")
+    if (!params.reference)     error("Missing --reference (FASTA)")
+    if (!params.graph_dir)     error("Missing --graph_dir (HLA*LA graph folder)")
+    if (!params.hla_reference) error("Missing --hla_reference (HLA decoy FASTA, e.g. GRCh38_full_analysis_set_plus_decoy_hla.fa)")
 
     def reference     = file(params.reference, checkIfExists: true)
     def reference_fai = file("${params.reference}.fai", checkIfExists: true)
@@ -134,17 +140,14 @@ workflow {
 
     // Truth table (only when any sample has expected HLA types)
     def truthKeys = samples.collectMany { it.truth.keySet() as List }.unique()
-    def ch_truth
-    if (truthKeys) {
-        def lines = [(['sample_id'] + truthKeys).join('\t')]
-        lines += samples.findAll { it.truth }.collect { s -> ([s.id] + truthKeys.collect { s.truth[it] ?: '' }).join('\t') }
-        ch_truth = Channel.of(lines.join('\n') + '\n').collectFile(name: 'truth.tsv')
-    } else {
-        ch_truth = Channel.value(file("${projectDir}/assets/NO_TRUTH"))
-    }
+    def truthLines = [(['sample_id'] + truthKeys).join('\t')] +
+        samples.findAll { it.truth }.collect { s -> ([s.id] + truthKeys.collect { s.truth[it] ?: '' }).join('\t') }
+    def ch_truth = truthKeys
+        ? channel.of(truthLines.join('\n') + '\n').collectFile(name: 'truth.tsv')
+        : channel.value(file("${projectDir}/assets/NO_TRUTH"))
 
     // Merge folders, index where needed
-    def ch_samples = Channel.fromList(samples).branch { s ->
+    def ch_samples = channel.fromList(samples).branch { s ->
         merge:     s.type == 'dir'
         indexed:   s.index != null
         unindexed: true
@@ -157,12 +160,9 @@ workflow {
         .mix(SAMTOOLS_INDEX.out)
         .mix(ch_samples.indexed.map { s -> [[id: s.id], s.files[0], s.index] })
 
-    def ch_extracted
-    if (params.skip_extract) {
-        ch_extracted = ch_aligned
-    } else {
-        ch_extracted = EXTRACT_HLA_REGION(ch_aligned, reference, reference_fai)
-    }
+    def ch_extracted = params.skip_extract
+        ? ch_aligned
+        : EXTRACT_HLA_REGION(ch_aligned, reference, reference_fai)
 
     // Realign to the HLA decoy reference expected by the HLA*LA graph
     MINIMAP2_ALIGN(ch_extracted, hla_index, reference, reference_fai)
@@ -170,8 +170,4 @@ workflow {
     HLALA(MINIMAP2_ALIGN.out, graph_dir, hla_reference, hla_fai)
     HLALA_QC(HLALA.out.bestguess)
     COMPILE(HLALA_QC.out.collect(), ch_truth)
-}
-
-workflow.onComplete {
-    log.info "wHLApper finished: ${workflow.success ? 'OK' : 'FAILED'} - results in ${params.outdir}"
 }
