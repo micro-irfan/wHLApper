@@ -112,18 +112,15 @@ def parseInput(String input) {
  */
 
 workflow {
+    main:
     // Top-level statements aren't allowed by the strict syntax parser, so --help
-    // and the completion handler live inside the workflow
+    // lives inside the workflow
     if (params.help) {
         helpMessage()
         exit 0
     }
 
-    workflow.onComplete {
-        log.info "wHLApper finished: ${workflow.success ? 'OK' : 'FAILED'} - results in ${params.outdir}"
-    }
-
-    if (!params.input)         error("Missing --input (BAM/CRAM or samplesheet)")
+    if (!params.input)       error("Missing --input (BAM/CRAM or samplesheet)")
     if (!params.reference)     error("Missing --reference (FASTA)")
     if (!params.graph_dir)     error("Missing --graph_dir (HLA*LA graph folder)")
     if (!params.hla_reference) error("Missing --hla_reference (HLA decoy FASTA, e.g. GRCh38_full_analysis_set_plus_decoy_hla.fa)")
@@ -170,4 +167,7 @@ workflow {
     HLALA(MINIMAP2_ALIGN.out, graph_dir, hla_reference, hla_fai)
     HLALA_QC(HLALA.out.bestguess)
     COMPILE(HLALA_QC.out.collect(), ch_truth)
+
+    onComplete:
+    log.info "wHLApper finished: ${workflow.success ? 'OK' : 'FAILED'} - results in ${params.outdir}"
 }
