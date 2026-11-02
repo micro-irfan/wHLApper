@@ -18,6 +18,11 @@ HLA_REFERENCE_MMI="/data/irfan/ref/GRCh38_full_analysis_set_plus_decoy_hla.mmi" 
 GRAPH_DIR="/data/irfan/ref/graph/PRG_MHC_GRCh38_withIMGT"                      # prepared with prepare_hla_graph.sh
 HLA_CONTAINER="hla-la:1.0.3"     # image built from docker/Dockerfile
 
+# Resources - must fit the machine (check with: free -g, nproc)
+THREADS=8
+HLA_MEMORY="60 GB"               # HLA*LA task
+ALIGN_MEMORY="32 GB"             # minimap2 realignment
+
 [[ -f "${WORKFLOW_DIR}/main.nf" ]] || { echo "main.nf not found in ${WORKFLOW_DIR} - set WORKFLOW_DIR" >&2; exit 1; }
 [[ -f "${SAMPLESHEET}" ]] || { echo "Samplesheet not found: ${SAMPLESHEET}" >&2; exit 1; }
 
@@ -33,7 +38,9 @@ NXF_VER=26.04.4 nextflow run "${WORKFLOW_DIR}/main.nf" \
     "${MMI_ARG[@]}" \
     --graph_dir "${GRAPH_DIR}" \
     --hla_container "${HLA_CONTAINER}" \
-    --threads 8 \
+    --threads "${THREADS}" \
+    --hla_memory "${HLA_MEMORY}" \
+    --align_memory "${ALIGN_MEMORY}" \
     --min_coverage 20 \
     --min_q1 0.95 \
     --outdir "results/${RUN_NAME}" \
