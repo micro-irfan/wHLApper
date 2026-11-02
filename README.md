@@ -6,7 +6,7 @@ Wrappers for running and comparing HLA (and other immune/PGx gene) typing tools 
 |---|---|---|---|
 | [`HLA-LA/`](HLA-LA/README.md) | [HLA*LA](https://github.com/DiltheyLab/HLA-LA) | HLA | Nextflow pipeline (Docker, Singularity or conda; local or Slurm) |
 | [`SpecImmune/`](SpecImmune/README.md) | [SpecImmune](https://github.com/deepomicslab/SpecImmune) | HLA, KIR, CYP, IG/TR | bash + Docker (`run_specimmune.sh`) |
-| [`FuFiHLA/`](FuFiHLA/) | FuFiHLA (bioconda `fufihla`) | HLA-A, -B, -C, -DQA1, -DQB1, -DRB1 | bash + Docker (`run_fufihla.sh`) |
+| [`FuFiHLA/`](FuFiHLA/README.md) | FuFiHLA (bioconda `fufihla`) | HLA-A, -B, -C, -DQA1, -DQB1, -DRB1 | bash + Docker (`run_fufihla.sh`) |
 | [`scripts/`](scripts/README.md) | helpers | | `fetch_ont_regions.sh` builds test data from ONT open data |
 
 ## Quick start

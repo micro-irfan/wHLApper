@@ -49,8 +49,8 @@ tar -xvzf PRG_MHC_GRCh38_withIMGT.tar.gz
 
 # 3. Optional: build a minimap2 index of the decoy reference, so it isn't rebuilt per sample
 BASE=https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome
-wget -c $BASE/GRCh38_full_analysis_set_plus_decoy_hla.fa
-wget -c $BASE/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai
+wget $BASE/GRCh38_full_analysis_set_plus_decoy_hla.fa
+wget $BASE/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai
 
 minimap2 -x map-ont -d GRCh38_full_analysis_set_plus_decoy_hla.mmi GRCh38_full_analysis_set_plus_decoy_hla.fa
 ```

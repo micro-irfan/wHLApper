@@ -1,0 +1,22 @@
+[FuFiHLA] REF_DIR: /opt/conda/share/fufihla/dps-dat
+[FuFiHLA] GENE_LIST: /opt/conda/share/fufihla/dps-dat/genes.list
+[FuFiHLA] ALLELE_FASTA: /opt/conda/share/fufihla/dps-dat/ref.gene.fa.gz
+[FuFiHLA] DEBUG: 0
+Step 0: Verify input reads file
+Step 1: Raw alignment
+Step 2: Gain informative reads from step-1 alignments
+Step 3: Map filtered reads to per-gene allele sets
+Step 4: Vote best alleles as templates
+Step 6: Realign reconstructed sequences (complete + cds)
+Step 7: Final allele calls
+HLA-A*03:01:01:59	2943	0	100.00	@cons_HLA-A*03_01_01_01	3501	283	3226	+	HLA-A*03:01:01:59	2944	1	2944	2943	2943	60	NM:i:0	ms:i:5886	AS:i:5886	nn:i:0	tp:A:P	cm:i:547	s1:i:2936	s2:i:0	de:f:0	rl:i:0	cg:Z:2943M	cs:Z::2943
+HLA-B*35:01:01:05	4085	0	100.00	@cons_HLA-B*35_01_01_68	4085	0	4085	+	HLA-B*35:01:01:05	4085	0	4085	4085	4085	60	NM:i:0	ms:i:8170	AS:i:8170	nn:i:0	tp:A:P	cm:i:759	s1:i:4079	s2:i:0	de:f:0	rl:i:0	cg:Z:4085M	cs:Z::4085
+HLA-B*51:01:01:04 cons_HLA-B*51_01_01_04	4085	0	4085	+	HLA-B*51:01:01:04	4085	0	4085	4085	4085	60	NM:i:0	ms:i:8170	AS:i:8170	nn:i:0	tp:A:P	cm:i:765	s1:i:4079	s2:i:0	de:f:0	rl:i:0	cg:Z:4085M	cs:Z::4085
+HLA-C*04:01:01:11	3904	0	100.00	@cons_HLA-C*04_313_01_02	3904	0	3904	+	HLA-C*04:01:01:11	4304	0	3904	3904	3904	60	NM:i:0	ms:i:7808	AS:i:7808	nn:i:0	tp:A:P	cm:i:726	s1:i:3892	s2:i:0	de:f:0	rl:i:0	cg:Z:3904M	cs:Z::3904
+HLA-C*15:02:01:01 cons_HLA-C*15_02_01_01	4303	0	4303	+	HLA-C*15:02:01:01	4303	0	4303	4303	4303	60	NM:i:0	ms:i:8606	AS:i:8606	nn:i:0	tp:A:P	cm:i:808	s1:i:4293	s2:i:0	de:f:0	rl:i:0	cg:Z:4303M	cs:Z::4303
+HLA-DQA1*01:01:01:02 cons_HLA-DQA1*01_01_01_02	5666	0	5666	+	HLA-DQA1*01:01:01:02	5666	0	5666	5666	5666	60	NM:i:0	ms:i:11332	AS:i:11332	nn:i:0	tp:A:P	cm:i:1028	s1:i:5656	s2:i:0	de:f:0	rl:i:0	cg:Z:5666M	cs:Z::5666
+HLA-DQA1*03:02:01:01 cons_HLA-DQA1*03_02_01_01	6437	0	6437	+	HLA-DQA1*03:02:01:01	6437	0	6437	6437	6437	60	NM:i:0	ms:i:12874	AS:i:12874	nn:i:0	tp:A:P	cm:i:1207	s1:i:6425	s2:i:0	de:f:0	rl:i:0	cg:Z:6437M	cs:Z::6437
+HLA-DQB1*03:03:02:02 cons_HLA-DQB1*03_03_02_02	7126	0	7126	+	HLA-DQB1*03:03:02:02	7126	0	7126	7126	7126	60	NM:i:0	ms:i:14252	AS:i:14252	nn:i:0	tp:A:P	cm:i:1344	s1:i:7117	s2:i:0	de:f:0	rl:i:0	cg:Z:7126M	cs:Z::7126
+HLA-DQB1*05:01:01:03 cons_HLA-DQB1*05_01_01_03	7090	0	7090	+	HLA-DQB1*05:01:01:03	7090	0	7090	7090	7090	60	NM:i:0	ms:i:14180	AS:i:14180	nn:i:0	tp:A:P	cm:i:1316	s1:i:7081	s2:i:0	de:f:0	rl:i:0	cg:Z:7090M	cs:Z::7090
+HLA-DRB1*01:01:01:01	11101	3	99.97	@cons_HLA-DRB1*01_01_01_01	11099	0	11099	+	HLA-DRB1*01:01:01:01	11101	0	11101	11098	11101	60	NM:i:3	ms:i:22180	AS:i:22180	nn:i:0	tp:A:P	cm:i:2086	s1:i:11088	s2:i:0	de:f:0.0003	rl:i:0	cg:Z:2229M1D7528M1D1342M	cs:Z::2229-a:7528-g*ga:1341
+HLA-DRB1*09:01:02:11 cons_HLA-DRB1*09_01_02_11	15394	0	15394	+	HLA-DRB1*09:01:02:11	15394	0	15394	15394	15394	60	NM:i:0	ms:i:30788	AS:i:30788	nn:i:0	tp:A:P	cm:i:2868	s1:i:15389	s2:i:134	de:f:0	rl:i:0	cg:Z:15394M	cs:Z::15394

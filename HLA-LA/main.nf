@@ -120,7 +120,7 @@ workflow {
         exit 0
     }
 
-    if (!params.input)       error("Missing --input (BAM/CRAM or samplesheet)")
+    if (!params.input)         error("Missing --input (BAM/CRAM or samplesheet)")
     if (!params.reference)     error("Missing --reference (FASTA)")
     if (!params.graph_dir)     error("Missing --graph_dir (HLA*LA graph folder)")
     if (!params.hla_reference) error("Missing --hla_reference (HLA decoy FASTA, e.g. GRCh38_full_analysis_set_plus_decoy_hla.fa)")
