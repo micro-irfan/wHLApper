@@ -1,0 +1,10 @@
+# FuFiHLA image built from conda-forge + bioconda only (no Anaconda 'defaults')
+# Build:  docker build -f Dockerfile.fufihla -t fufihla:v0.2.4 .
+FROM condaforge/miniforge3:latest
+
+# fufihla from bioconda; samtools is added so the runner can extract HLA reads from BAMs
+RUN mamba install -y -n base -c conda-forge -c bioconda fufihla samtools \
+    && conda clean --all -y \
+    && command -v fufihla && command -v samtools
+
+WORKDIR /work

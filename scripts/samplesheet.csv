@@ -1,0 +1,3 @@
+sample_id,flowcell_id,s3_path
+HG001_1,PAW79146,s3://ont-open-data/giab_2025.01/analysis/wf-human-variation/hac/HG001/PAW79146/output/
+HG005_1,PAW87816,s3://ont-open-data/giab_2025.01/analysis/wf-human-variation/hac/HG005/PAW87816/output/

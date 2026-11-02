@@ -1,0 +1,62 @@
+# ---------------------------------------------------------------- Nextflow
+.nextflow/
+.nextflow.log*
+work/
+results/
+pipeline_info/
+nextflow_run.*.log
+trace.txt*
+timeline.html*
+report.html*
+dag.html*
+
+# ---------------------------------------------------------------- run outputs and logs
+*.log
+nohup.out
+run_summary.tsv
+fufihla_results/
+giab_open_data*/
+
+# ---------------------------------------------------------------- sequencing data and references
+# (large files - keep them outside the repo or here locally, never committed)
+*.bam
+*.bai
+*.cram
+*.crai
+*.csi
+*.sam
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fa
+*.fa.gz
+*.fasta
+*.fasta.gz
+*.fna
+*.fna.gz
+*.fai
+*.gzi
+*.dict
+*.mmi
+*.vcf.gz
+*.tbi
+*.part
+
+# HLA*LA graphs and SpecImmune databases
+PRG_MHC_*/
+SpecImmune/db/
+
+# ---------------------------------------------------------------- Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------- editors and OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

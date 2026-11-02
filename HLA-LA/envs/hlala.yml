@@ -1,0 +1,8 @@
+name: whlapper-hlala
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::hla-la=1.0.3
+  - bioconda::samtools>=1.10
+  - bioconda::minimap2>=2.22
