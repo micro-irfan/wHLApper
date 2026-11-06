@@ -28,10 +28,10 @@ All commands below are run from this folder.
 
 ```bash
 git clone https://github.com/micro-irfan/wHLApper.git
-cd wHLApper
 
 # 1. Build the image (slow the first time: Boost is compiled from source)
-docker build -t hla-la:1.0.3 docker
+cd wHLApper/HLA-LA/docker
+docker build -f Dockerfile -t hla-la:1.0.3 .
 
 # 2. Index the PRG graph once. Files are written into the graph folder
 wget http://www.well.ox.ac.uk/downloads/PRG_MHC_GRCh38_withIMGT.tar.gz
@@ -44,7 +44,7 @@ md5sum PRG_MHC_GRCh38_withIMGT.tar.gz
 
 tar -xvzf PRG_MHC_GRCh38_withIMGT.tar.gz
 
-# This should take about 20mins on a GridION 
+# This should take about 1.5 hours on GridION 
 ./prepare_hla_graph.sh -g /ref/graph/PRG_MHC_GRCh38_withIMGT
 
 # 3. Optional: build a minimap2 index of the decoy reference, so it isn't rebuilt per sample

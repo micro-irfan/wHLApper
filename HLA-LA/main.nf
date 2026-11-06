@@ -33,6 +33,7 @@ def helpMessage() {
       --min_q1         Q1 must be > this [${params.min_q1}]
       --skip_extract   Pass the whole BAM to HLA*LA instead of chr6/HLA contigs + unmapped
       --threads        Threads for HLA*LA [${params.threads}]
+      --hla_timeout    Per-sample HLA*LA time limit, e.g. 2.5h; samples over it are skipped
 
     Profiles: docker | singularity | conda  (optionally combined with: slurm)
     """.stripIndent()

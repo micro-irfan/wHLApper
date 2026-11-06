@@ -27,11 +27,14 @@ process HLALA {
     script:
     // HLA-LA (BamTools) expects <file>.bai / <file>.crai next to the alignment
     def idx_ext = xam.name.endsWith('.cram') ? 'crai' : 'bai'
+    // Time limit enforced in-task (exit 124) rather than via the `time` directive,
+    // which crashes the local executor when HLA*LA doesn't exit promptly
+    def limit   = params.hla_timeout ? "timeout --kill-after=60s ${params.hla_timeout}" : ''
     """
     [ -e ${xam}.${idx_ext} ] || ln -s ${xamIdx} ${xam}.${idx_ext}
     mkdir -p hlala_work
 
-    HLA-LA.pl --BAM ${xam} \\
+    ${limit} HLA-LA.pl --BAM ${xam} \\
               --customGraphDir ${graph_dir} \\
               --sampleID ${meta.id} \\
               --maxThreads ${task.cpus} \\

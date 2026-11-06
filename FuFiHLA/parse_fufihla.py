@@ -10,6 +10,11 @@ FuFiHLA writes a single line for a gene when it calls it homozygous, so that
 allele is reported for both <gene>_1 and <gene>_2 (use --no-fill-homozygous to
 leave _2 empty instead).
 
+If run_fufihla.sh was run with -D (keep intermediates), read counts, coverage and
+mean depth of each assembly BAM (<results_dir>/<sample>/<sample>/bam/*_asm*.bam)
+are written to a second CSV via `samtools coverage` (default: <output>.coverage.csv).
+Without -D those BAMs don't exist and this step is skipped.
+
 Examples:
     parse_fufihla.py fufihla_results -o hla_calls.csv
     parse_fufihla.py fufihla_results -g C DRB1 --fields 2 -o hla_calls.csv
@@ -18,11 +23,16 @@ Examples:
 
 import argparse
 import csv
+import re
+import shutil
+import subprocess
 import sys
 from collections import OrderedDict
 from pathlib import Path
 
 DEFAULT_GENES = ["HLA-A", "HLA-B"]
+COVERAGE_COLUMNS = ["sample_id", "bam", "contig", "gene", "haplotype", "allele",
+                    "numreads", "coverage", "meandepth"]
 
 
 def gene_name(gene):
@@ -57,6 +67,79 @@ def parse_out(path):
     return calls
 
 
+def debug_bams(out_file):
+    """Assembly BAMs FuFiHLA keeps with --debug: <out>/bam/*_asm*.bam next to <out>.out."""
+    out_dir = out_file.with_name(out_file.name[: -len(".out")] if out_file.name.endswith(".out") else out_file.stem)
+    return sorted((out_dir / "bam").glob("*_asm*.bam"))
+
+
+def gene_of(contig, bam_name):
+    """'HLA-A*03:01:01' / 'A*03:01' / 'HLA-A_asm1' -> 'HLA-A' ('' if no gene is recognisable)."""
+    for text in (contig, bam_name):
+        m = (re.search(r"HLA-([A-Z]+[0-9]*)", text, re.I)
+             or re.search(r"(?<![A-Za-z0-9])([A-Z]+[0-9]*)\*[0-9]", text))
+        if m:
+            return f"HLA-{m.group(1).upper()}"
+    return ""
+
+
+def haplotypes_of(bam_name):
+    """'HLA-A_asm1' -> [1], 'HLA-A_asm2' -> [2]; no assembly number -> both haplotypes [1, 2]."""
+    m = re.search(r"_asm(\d+)$", bam_name)
+    return [int(m.group(1))] if m else [1, 2]
+
+
+def contig_allele(contig, fields):
+    """Assembly contig 'HLA-A*03_01_01_01' -> allele 'HLA-A*03:01:01:01' (then --fields)."""
+    if "*" not in contig:
+        return ""
+    gene, rest = contig.split("*", 1)
+    return truncate(f"{gene}*{rest.replace('_', ':')}", fields)
+
+
+def samtools_coverage(bam):
+    """Rows of `samtools coverage <bam>` as dicts keyed by its header (rname, numreads, ...)."""
+    res = subprocess.run(["samtools", "coverage", str(bam)], capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"WARNING: samtools coverage failed for {bam}: {res.stderr.strip()}", file=sys.stderr)
+        return []
+    lines = res.stdout.splitlines()
+    if not lines:
+        return []
+    header = lines[0].lstrip("#").split("\t")
+    return [dict(zip(header, l.split("\t"))) for l in lines[1:] if l.strip()]
+
+
+def write_coverage(path, bams_by_sample, genes, fields):
+    """
+    One row per haplotype of each BAM contig of the requested genes (genes=None
+    keeps every contig). The allele is the database allele the assembly contig
+    was aligned to.
+    """
+    rows, unmatched = [], set()
+    for sample, bams in bams_by_sample.items():
+        for bam in bams:
+            name = bam.name[: -len(".bam")]
+            for r in samtools_coverage(bam):
+                gene = gene_of(r["rname"], name)
+                if genes is not None and gene not in genes:
+                    if not gene:
+                        unmatched.add(r["rname"])
+                    continue
+                for hap in haplotypes_of(name):
+                    rows.append([sample, name, r["rname"], gene, hap, contig_allele(r["rname"], fields),
+                                 r["numreads"], r["coverage"], r["meandepth"]])
+    if not rows and unmatched:
+        print("WARNING: no coverage rows matched the genes; contigs seen: "
+              + ", ".join(sorted(unmatched)[:5]), file=sys.stderr)
+
+    with open(path, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(COVERAGE_COLUMNS)
+        w.writerows(rows)
+    print(f"Wrote {len(rows)} coverage rows to {path}", file=sys.stderr)
+
+
 def find_out_files(inputs):
     """Expand folders to their <sample>/<sample>.out (or *.out) files."""
     files = []
@@ -89,19 +172,23 @@ def main():
                     help="truncate alleles to this many fields, e.g. 2 -> A*03:01 (default: keep all)")
     ap.add_argument("--no-fill-homozygous", action="store_true",
                     help="leave <gene>_2 empty when FuFiHLA reports a single allele")
+    ap.add_argument("--coverage", metavar="CSV",
+                    help="coverage CSV from the -D assembly BAMs (default: <output>.coverage.csv)")
+    ap.add_argument("--no-coverage", action="store_true", help="skip the samtools coverage step")
     args = ap.parse_args()
 
     files = find_out_files(args.inputs)
     if not files:
         sys.exit("ERROR: no .out files to parse")
 
-    samples = OrderedDict()
+    samples, sources = OrderedDict(), OrderedDict()
     for f in files:
         sample = f.name[: -len(".out")] if f.name.endswith(".out") else f.stem
         if sample in samples:
             print(f"WARNING: duplicate sample {sample} ({f}), keeping the first", file=sys.stderr)
             continue
         samples[sample] = parse_out(f)
+        sources[sample] = f
 
     genes = DEFAULT_GENES + [g for g in map(gene_name, args.genes) if g not in DEFAULT_GENES]
     if args.all_genes:
@@ -134,6 +221,25 @@ def main():
 
     if args.output != "-":
         print(f"Wrote {len(table)} rows x {len(samples)} samples to {args.output}", file=sys.stderr)
+
+    # Coverage of the assembly BAMs, only present when run_fufihla.sh used -D
+    if args.no_coverage:
+        return
+    cov_out = args.coverage or (None if args.output == "-" else f"{Path(args.output).with_suffix('')}.coverage.csv")
+    bams = OrderedDict((s, debug_bams(f)) for s, f in sources.items())
+    if not any(bams.values()):
+        print("NOTE: no FuFiHLA debug BAMs (<sample>/<sample>/bam/*_asm*.bam) - "
+              "rerun run_fufihla.sh with -D for coverage; skipped", file=sys.stderr)
+        return
+    if not cov_out:
+        print("NOTE: coverage skipped - give --coverage FILE when the calls go to stdout", file=sys.stderr)
+        return
+    if not shutil.which("samtools"):
+        print("WARNING: samtools not on PATH - coverage skipped", file=sys.stderr)
+        return
+    for s in [s for s, b in bams.items() if not b]:
+        print(f"WARNING: no debug BAMs for {s}", file=sys.stderr)
+    write_coverage(cov_out, bams, None if args.all_genes else set(genes), args.fields)
 
 
 if __name__ == "__main__":
