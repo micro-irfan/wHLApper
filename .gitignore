@@ -47,6 +47,9 @@ giab_open_data*/
 PRG_MHC_*/
 SpecImmune/db/
 
+# ---------------------------------------------------------------- Chinook (CYP2D6) helper scripts
+scripts/cyp2d6/*chinook*
+
 # ---------------------------------------------------------------- Python
 __pycache__/
 *.py[cod]

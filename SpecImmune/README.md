@@ -34,6 +34,8 @@ cd ../../
 # Rerun the above command - it should complete with no error afterwards
 docker run --rm   -v "$(pwd)/db:/SpecImmune/db"   -w /SpecImmune   --user "$(id -u):$(id -g)"   specimmune:v1.0.0   python scripts/make_db.py -o ./db -i HLA
 
+
+docker run --rm   -v "$(pwd)/db:/SpecImmune/db"   -w /SpecImmune   --user "$(id -u):$(id -g)"   specimmune:v1.0.0   python scripts/make_db.py -o ./db -i CYP -p ./pharmvar-6.2
 ```
 
 CYP also needs the [PharmVar](https://www.pharmvar.org/download) database. Download the complete set, unzip it, and pass the folder with `-p`. All its `*.fasta` files are merged and passed to `make_db.py --CYP_fa`:
